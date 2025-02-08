@@ -37,15 +37,20 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo on the Home Page
-            Image.asset('assets/Logo1.png', height: 250),
-            const SizedBox(height: 60),
+            // Responsive Logo
+            Image.asset(
+              'assets/Logo1.png',
+              height: MediaQuery.of(context).size.height * 0.3, // Dynamic resizing
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 40),
 
             // Source Dropdown
             DropdownButtonFormField<String>(
               value: selectedSource,
+              hint: const Text("Select Source"),
               items: locations
-                  .where((source) => source != selectedDestination) // Exclude selected destination
+                  .where((source) => source != selectedDestination) // Prevents duplicate selection
                   .map((source) => DropdownMenuItem(
                 value: source,
                 child: Text(source),
@@ -55,7 +60,7 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   selectedSource = value;
                   if (selectedSource == selectedDestination) {
-                    selectedDestination = null; // Reset destination if it was previously selected
+                    selectedDestination = null;
                   }
                 });
               },
@@ -79,8 +84,9 @@ class _HomePageState extends State<HomePage> {
             // Destination Dropdown
             DropdownButtonFormField<String>(
               value: selectedDestination,
+              hint: const Text("Select Destination"),
               items: locations
-                  .where((destination) => destination != selectedSource) // Exclude selected source
+                  .where((destination) => destination != selectedSource)
                   .map((destination) => DropdownMenuItem(
                 value: destination,
                 child: Text(destination),
@@ -90,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   selectedDestination = value;
                   if (selectedDestination == selectedSource) {
-                    selectedSource = null; // Reset source if it was previously selected
+                    selectedSource = null;
                   }
                 });
               },
@@ -113,20 +119,26 @@ class _HomePageState extends State<HomePage> {
 
             // Find Bus Button
             ElevatedButton(
-              onPressed: () {
-                if (selectedSource != null && selectedDestination != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BusResultsPage(
-                        busDetails: widget.busDetails,
-                        source: selectedSource!,
-                        destination: selectedDestination!,
-                      ),
-                    ),
+              onPressed: (selectedSource != null && selectedDestination != null)
+                  ? () {
+                if (selectedSource == selectedDestination) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Source and Destination cannot be the same')),
                   );
+                  return;
                 }
-              },
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BusResultsPage(
+                      busDetails: widget.busDetails,
+                      source: selectedSource!,
+                      destination: selectedDestination!,
+                    ),
+                  ),
+                );
+              }
+                  : null, // Button disabled if selections are incomplete
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blueAccent,
